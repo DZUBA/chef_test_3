@@ -16,7 +16,7 @@ version '0.1.0'
 
 depends 'yum', '~> 4.1.0'
 depends 'mysql', '~> 6.0'
-depends 'iptables', '~> 3.0.1'
 depends 'apache', '~> 0.0.5'
 depends 'database', '~> 6.1.1'
 ruby depends 'mysql2_chef_gem', '~> 1.0'
+depends 'simple_iptables', '~> 0.7.5'

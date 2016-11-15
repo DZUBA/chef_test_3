@@ -15,7 +15,8 @@ version '0.1.0'
 # source_url 'https://github.com/<insert_org_here>/chef_task_3' if respond_to?(:source_url)
 
 depends 'yum', '~> 4.1.0'
-depends 'mysql', '~> 8.0.2'
+depends 'mysql', '~> 6.0'
 depends 'iptables', '~> 3.0.1'
 depends 'apache', '~> 0.0.5'
-depends 'mysql', '~> 8.1.1'
+depends 'database', '~> 6.1.1'
+ruby depends 'mysql2_chef_gem', '~> 1.0'

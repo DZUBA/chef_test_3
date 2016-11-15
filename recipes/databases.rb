@@ -48,3 +48,19 @@ mysql_database 'prod_db' do
   connection mysql_connection_info
   action :create
 end
+
+mysql_database_user 'service-stage' do
+  connection    mysql_connection_info
+  database_name 'stage_db'
+  host          '%'
+  privileges    [:select,:update,:insert]
+  action        :grant
+end
+
+mysql_database_user 'service_prod' do
+  connection    mysql_connection_info
+  database_name 'prod_db'
+  host          '%'
+  privileges    [:select,:update,:insert]
+  action        :grant
+end

@@ -71,10 +71,10 @@ Vagrant.configure('2') do |config|
   config.berkshelf.enabled = true
   config.berkshelf.berksfile_path = 'Berksfile'
   config.vm.provision 'chef_solo' do |chef|
-    chef.cookbooks_path = 'chef_task_2'
+    chef.cookbooks_path = 'chef_task_3'
     chef.data_bags_path = 'data_bags'
     chef.run_list = [
-      'recipe[chef_task_2::default]'
+      'recipe[chef_task_3::databases]'
     ]
   end
 end

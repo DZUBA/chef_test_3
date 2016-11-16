@@ -74,7 +74,8 @@ Vagrant.configure('2') do |config|
     chef.cookbooks_path = 'chef_task_3'
     chef.data_bags_path = 'data_bags'
     chef.run_list = [
-      'recipe[chef_task_3::databases]'
+      'recipe[chef_task_3::databases]',
+      'recipe[chef_task_3::httpd]'
     ]
   end
 end

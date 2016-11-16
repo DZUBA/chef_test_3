@@ -40,14 +40,23 @@ mysql_connection_info = {
     :password => "#{mysql_passwd}"
 }
 
+# import schema file
+cookbook_file '/tmp/schema.sql' do
+  source 'schema.sql'
+#  notifies :run, 'execute[stage_import]', :delayed
+#  notifies :run, 'execute[prod_import]', :delayed
+end
+
 mysql_database 'stage_db' do
   connection mysql_connection_info
   action :create
+  notifies :run, 'execute[stage_import]', :delayed
 end
 
 mysql_database 'prod_db' do
   connection mysql_connection_info
   action :create
+notifies :run, 'execute[prod_import]', :delayed
 end
 
 mysql_database_user 'service-stage' do
@@ -64,6 +73,20 @@ mysql_database_user 'service_prod' do
   host          '%'
   privileges    [:select,:update,:insert]
   action        :grant
+end
+
+# importing stage_db schema
+execute 'stage_import' do
+  sensitive true
+  command "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -u#{mysql_user} -Dstage_db < /tmp/schema.sql"
+  action :nothing
+end
+
+# importing prod_db schema
+execute 'prod_import' do
+  sensitive true
+  command "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -u#{mysql_user} -Dprod_db < /tmp/schema.sql"
+  action :nothing
 end
 
 simple_iptables_rule "mysql" do

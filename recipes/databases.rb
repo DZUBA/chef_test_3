@@ -42,24 +42,28 @@ mysql_connection_info = {
 
 # import schema file
 cookbook_file '/tmp/schema.sql' do
+  sensitive true
   source 'schema.sql'
-#  notifies :run, 'execute[stage_import]', :delayed
-#  notifies :run, 'execute[prod_import]', :delayed
 end
 
 mysql_database 'stage_db' do
+  sensitive true
   connection mysql_connection_info
   action :create
   notifies :run, 'execute[stage_import]', :delayed
+  notifies :run, 'cron[stage_db_dump]', :delayed
 end
 
 mysql_database 'prod_db' do
+  sensitive true
   connection mysql_connection_info
   action :create
-notifies :run, 'execute[prod_import]', :delayed
+  notifies :run, 'execute[prod_import]', :delayed
+  notifies :run, 'cron[prod_db_dump]', :delayed
 end
 
 mysql_database_user 'service-stage' do
+  sensitive true
   connection    mysql_connection_info
   database_name 'stage_db'
   host          '%'
@@ -68,6 +72,7 @@ mysql_database_user 'service-stage' do
 end
 
 mysql_database_user 'service_prod' do
+  sensitive true
   connection    mysql_connection_info
   database_name 'prod_db'
   host          '%'
@@ -89,7 +94,27 @@ execute 'prod_import' do
   action :nothing
 end
 
+execute 'dir_for_dump' do
+  command "mkdir /tmp/mysql_dump"
+  not_if { ::File.directory?("/tmp/mysql_dump") }
+end
+
+# create cron for stage_db dump
+cron 'stage_db_dump' do
+  minute '*/5'
+  command "\`mysqldump -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} stage_db > /tmp/mysql_dump/stage_db_$(date \"+%Y%m%d\")/$(date \"+%H%M%S\").dump\` "
+  action :nothing
+end
+
+# create cron for cron_db dump
+cron 'prod_db_dump' do
+  minute '*/5'
+  command "\`mysqldump -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} stage_db > /tmp/mysql_dump/stage_db_$(date \"+%Y%m%d\")_$(date \"+%H%M%S\").dump\` "
+  action :nothing
+end
+
 simple_iptables_rule "mysql" do
+  sensitive true
   rule "--proto tcp --dport 3306"
   jump "ACCEPT"
 end

@@ -51,7 +51,7 @@ mysql_database 'stage_db' do
   connection mysql_connection_info
   action :create
   notifies :run, 'execute[stage_import]', :delayed
-  notifies :run, 'cron[stage_db_dump]', :delayed
+#  notifies :run, 'cron[stage_db_dump]', :delayed
 end
 
 mysql_database 'prod_db' do
@@ -59,7 +59,7 @@ mysql_database 'prod_db' do
   connection mysql_connection_info
   action :create
   notifies :run, 'execute[prod_import]', :delayed
-  notifies :run, 'cron[prod_db_dump]', :delayed
+#  notifies :run, 'cron[prod_db_dump]', :delayed
 end
 
 mysql_database_user 'service-stage' do
@@ -102,15 +102,15 @@ end
 # create cron for stage_db dump
 cron 'stage_db_dump' do
   minute '*/5'
-  command "\`mysqldump -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} stage_db > /tmp/mysql_dump/stage_db_$(date \"+%Y%m%d\")_$(date \"+%H%M%S\").dump\` "
-  action :nothing
+  command "mysqldump -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} stage_db > /tmp/mysql_dump/stage_db_$(date \"+%Y%m%d\")_$(date \"+%H%M%S\").dump\ "
+#  action :nothing
 end
 
 # create cron for cron_db dump
 cron 'prod_db_dump' do
   minute '*/5'
-  command "\`mysqldump -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} stage_db > /tmp/mysql_dump/stage_db_$(date \"+%Y%m%d\")_$(date \"+%H%M%S\").dump\` "
-  action :nothing
+  command "mysqldump -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} stage_db > /tmp/mysql_dump/stage_db_$(date \"+%Y%m%d\")_$(date \"+%H%M%S\").dump\ "
+#  action :nothing
 end
 
 simple_iptables_rule "mysql" do

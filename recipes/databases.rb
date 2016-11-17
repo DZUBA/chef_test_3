@@ -102,7 +102,7 @@ end
 # create cron for stage_db dump
 cron 'stage_db_dump' do
   minute '*/5'
-  command "\`mysqldump -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} stage_db > /tmp/mysql_dump/stage_db_$(date \"+%Y%m%d\")/$(date \"+%H%M%S\").dump\` "
+  command "\`mysqldump -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} stage_db > /tmp/mysql_dump/stage_db_$(date \"+%Y%m%d\")_$(date \"+%H%M%S\").dump\` "
   action :nothing
 end
 

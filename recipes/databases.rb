@@ -80,6 +80,24 @@ mysql_database_user 'service_prod' do
   action        :grant
 end
 
+mysql_database_user 'dump' do
+  sensitive true
+  connection    mysql_connection_info
+  database_name 'stage_db'
+  host          '%'
+  privileges    [:select]
+  action        :grant
+end
+
+mysql_database_user 'dump' do
+  sensitive true
+  connection    mysql_connection_info
+  database_name 'prod_db'
+  host          '%'
+  privileges    [:select]
+  action        :grant
+end
+
 # importing stage_db schema
 execute 'stage_import' do
   sensitive true
@@ -101,16 +119,14 @@ end
 
 # create cron for stage_db dump
 cron 'stage_db_dump' do
-  minute '*/5'
-  command "mysqldump -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} stage_db > /tmp/mysql_dump/stage_db_$(date \"+%Y%m%d\")_$(date \"+%H%M%S\").dump\ "
-#  action :nothing
+  hour '1'
+  command "mysqldump -h127.0.0.1 -P3306 -udump stage_db > /tmp/mysql_dump/stage_db.dump\ "
 end
 
 # create cron for cron_db dump
 cron 'prod_db_dump' do
-  minute '*/5'
-  command "mysqldump -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} stage_db > /tmp/mysql_dump/stage_db_$(date \"+%Y%m%d\")_$(date \"+%H%M%S\").dump\ "
-#  action :nothing
+  hour '1'
+  command "mysqldump -h127.0.0.1 -P3306 -udump stage_db > /tmp/mysql_dump/prod_db.dump\ "
 end
 
 simple_iptables_rule "mysql" do

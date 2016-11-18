@@ -6,9 +6,17 @@
 
 include_recipe 'simple_iptables'
 
-httpd_service 'default' do
-  action [:create, :start]
+package 'httpd' do
+  action :install
 end
+
+service 'httpd' do
+  action :start
+end
+
+web_app "dump_site" do
+  template 'dump.erb'
+end  
 
 simple_iptables_rule "web" do
   rule "--proto tcp --dport 80"

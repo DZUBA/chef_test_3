@@ -71,7 +71,8 @@ Vagrant.configure('2') do |config|
   config.berkshelf.enabled = true
   config.berkshelf.berksfile_path = 'Berksfile'
   config.vm.provision 'chef_solo' do |chef|
-  config.vm.network :forwarded_port, guest: 80, host: 80
+  config.vm.synced_folder '/Users/DZUBA/.chef/', '/etc/chef', type: 'rsync'
+  config.vm.network :forwarded_port, guest: 80, host: 8000
     chef.cookbooks_path = 'chef_task_3'
     chef.data_bags_path = 'data_bags'
     chef.run_list = [

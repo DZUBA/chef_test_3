@@ -9,16 +9,10 @@ include_recipe 'simple_iptables'
 
 # data bags init
 mysql_bag = data_bag_item('admins', 'mysql')
-stage_bag = data_bag_item('databases', 'stage')
-prod_bag = data_bag_item('databases', 'prod')
 
 # MySQL creds
 mysql_user = mysql_bag['user']
 mysql_passwd = mysql_bag['pass']
-stage_user = stage_bag['db_user']
-stage_db = stage_bag['db_name']
-prod_user = prod_bag['db_user']
-prod_db = prod_bag['db_name']
 inst_name = mysql_bag['inst']
 
 # mysql service install and start
@@ -37,10 +31,10 @@ end
 
 # mysql creds
 mysql_connection_info = {
-    :host     => '127.0.0.1',
-    :username => "#{mysql_user}",
-    :socket   => "/var/run/mysql-#{inst_name}/mysqld.sock",
-    :password => "#{mysql_passwd}"
+  host: '127.0.0.1',
+  username: "#{mysql_user}",
+  socket: "/var/run/mysql-#{inst_name}/mysqld.sock",
+  password: "#{mysql_passwd}"
 }
 
 # import schema file
@@ -71,7 +65,7 @@ mysql_database_user 'service-stage' do
   connection    mysql_connection_info
   database_name 'stage_db'
   host          '%'
-  privileges    [:select,:update,:insert]
+  privileges    [:select, :update, :insert]
   action        :grant
 end
 
@@ -81,7 +75,7 @@ mysql_database_user 'service_prod' do
   connection    mysql_connection_info
   database_name 'prod_db'
   host          '%'
-  privileges    [:select,:update,:insert]
+  privileges    [:select, :update, :insert]
   action        :grant
 end
 
@@ -116,27 +110,27 @@ execute 'prod_import' do
   action :nothing
 end
 
-# create dir 
+# create dir
 execute 'dir_for_dump' do
   action :nothing
-  command "mkdir /tmp/mysql_dump"
+  command 'mkdir /tmp/mysql_dump'
 end
 
 # create cron for stage_db dump
 cron 'stage_db_dump' do
   hour '1'
-  command "mysqldump -h127.0.0.1 -P3306 -udump stage_db > /tmp/mysql_dump/stage_db.dump\ "
+  command 'mysqldump -h127.0.0.1 -P3306 -udump stage_db > /tmp/mysql_dump/stage_db.dump'
 end
 
 # create cron for cron_db dump
 cron 'prod_db_dump' do
   hour '1'
-  command "mysqldump -h127.0.0.1 -P3306 -udump stage_db > /tmp/mysql_dump/prod_db.dump\ "
+  command 'mysqldump -h127.0.0.1 -P3306 -udump stage_db > /tmp/mysql_dump/prod_db.dump'
 end
 
 # iptables rule for mysql
-simple_iptables_rule "mysql" do
+simple_iptables_rule 'mysql' do
   sensitive true
-  rule "--proto tcp --dport 3306"
-  jump "ACCEPT"
+  rule '--proto tcp --dport 3306'
+  jump 'ACCEPT'
 end

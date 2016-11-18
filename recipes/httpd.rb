@@ -17,12 +17,12 @@ service 'httpd' do
 end
 
 # config for dump site
-web_app "dump_site" do
+web_app 'dump_site' do
   template 'dump.erb'
-end  
+end
 
 # iptables rule for apache
-simple_iptables_rule "web" do
-  rule "--proto tcp --dport 80"
-  jump "ACCEPT"
+simple_iptables_rule 'web' do
+  rule '--proto tcp --dport 80'
+  jump 'ACCEPT'
 end

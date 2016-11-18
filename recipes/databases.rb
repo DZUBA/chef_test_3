@@ -21,6 +21,7 @@ prod_user = prod_bag['db_user']
 prod_db = prod_bag['db_name']
 inst_name = mysql_bag['inst']
 
+# mysql service install and start
 mysql_service 'default' do
   port '3306'
   version '5.5'
@@ -29,10 +30,12 @@ mysql_service 'default' do
   action [:create, :start]
 end
 
+# mysql2_chef_gem package to use database cookbook
 mysql2_chef_gem 'inst' do
   action :install
 end
 
+# mysql creds
 mysql_connection_info = {
     :host     => '127.0.0.1',
     :username => "#{mysql_user}",
@@ -46,22 +49,23 @@ cookbook_file '/tmp/schema.sql' do
   source 'schema.sql'
 end
 
+# create stage_db
 mysql_database 'stage_db' do
   sensitive true
   connection mysql_connection_info
   action :create
   notifies :run, 'execute[stage_import]', :delayed
-#  notifies :run, 'cron[stage_db_dump]', :delayed
 end
 
+# create prod_db
 mysql_database 'prod_db' do
   sensitive true
   connection mysql_connection_info
   action :create
   notifies :run, 'execute[prod_import]', :delayed
-#  notifies :run, 'cron[prod_db_dump]', :delayed
 end
 
+# create user for stage_db
 mysql_database_user 'service-stage' do
   sensitive true
   connection    mysql_connection_info
@@ -71,6 +75,7 @@ mysql_database_user 'service-stage' do
   action        :grant
 end
 
+# create user for prod_db
 mysql_database_user 'service_prod' do
   sensitive true
   connection    mysql_connection_info
@@ -80,22 +85,21 @@ mysql_database_user 'service_prod' do
   action        :grant
 end
 
+# create user for dump
 mysql_database_user 'dump' do
   sensitive true
   connection    mysql_connection_info
-  database_name 'stage_db'
-  host          '%'
-  privileges    [:select]
-  action        :grant
+  action        :create
+  notifies :run, 'execute[dir_for_dump]'
+  notifies :run, 'execute[dump_user_grants]'
 end
 
-mysql_database_user 'dump' do
+# dump user grants
+execute 'dump_user_grants' do
+  action :nothing
   sensitive true
-  connection    mysql_connection_info
-  database_name 'prod_db'
-  host          '%'
-  privileges    [:select]
-  action        :grant
+  command "mysql -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} -e \"grant select,lock tables on prod_db.* to 'dump'@'%'\" "
+  command "mysql -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} -e \"grant select,lock tables on stage_db.* to 'dump'@'%'\" "
 end
 
 # importing stage_db schema
@@ -112,9 +116,10 @@ execute 'prod_import' do
   action :nothing
 end
 
+# create dir 
 execute 'dir_for_dump' do
+  action :nothing
   command "mkdir /tmp/mysql_dump"
-  not_if { ::File.directory?("/tmp/mysql_dump") }
 end
 
 # create cron for stage_db dump
@@ -129,6 +134,7 @@ cron 'prod_db_dump' do
   command "mysqldump -h127.0.0.1 -P3306 -udump stage_db > /tmp/mysql_dump/prod_db.dump\ "
 end
 
+# iptables rule for mysql
 simple_iptables_rule "mysql" do
   sensitive true
   rule "--proto tcp --dport 3306"

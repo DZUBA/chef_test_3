@@ -5,7 +5,6 @@
 # Copyright (c) 2016 The Authors, All Rights Reserved.
 
 include_recipe 'yum'
-include_recipe 'simple_iptables'
 
 # data bags init
 mysql_bag = data_bag_item('admins', 'mysql')
@@ -126,11 +125,4 @@ end
 cron 'prod_db_dump' do
   hour '1'
   command 'mysqldump -h127.0.0.1 -P3306 -udump stage_db > /tmp/mysql_dump/prod_db.dump'
-end
-
-# iptables rule for mysql
-simple_iptables_rule 'mysql' do
-  sensitive true
-  rule '--proto tcp --dport 3306'
-  jump 'ACCEPT'
 end

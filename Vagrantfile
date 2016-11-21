@@ -78,7 +78,8 @@ Vagrant.configure('2') do |config|
     chef.encrypted_data_bag_secret_key_path = '/etc/chef/client.pem'
     chef.run_list = [
       'recipe[chef_task_3::databases]',
-      'recipe[chef_task_3::httpd]'
+      'recipe[chef_task_3::httpd]',
+      'recipe[chef_task_3::iptables]'
     ]
   end
 end

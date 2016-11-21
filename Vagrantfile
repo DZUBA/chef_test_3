@@ -73,8 +73,9 @@ Vagrant.configure('2') do |config|
   config.vm.provision 'chef_solo' do |chef|
     chef.cookbooks_path = 'chef_task_3'
     chef.data_bags_path = 'data_bags'
-    config.vm.synced_folder '/Users/DZUBA/.chef/', '/etc/chef', type: 'rsync'
+    config.vm.synced_folder './.chef/', '/etc/chef', type: 'rsync'
     config.vm.network :forwarded_port, guest: 80, host: 80
+    chef.encrypted_data_bag_secret_key_path = '/etc/chef/client.pem'
     chef.run_list = [
       'recipe[chef_task_3::databases]',
       'recipe[chef_task_3::httpd]'

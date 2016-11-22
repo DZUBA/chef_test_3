@@ -2,6 +2,14 @@
 
 TODO: Cookbook for MySQL server deployment with automated backups and web access to backups
 
+## Cookbook Dependencies
+
+Cookbook contain couple dependencies among them are "yum", "mysql", "mysql2_chef_gem", "apache2", "databases" and "simple_iptables".
+"yum" been used to get latest packages and version of mysql which we need. "mysql" used to install MySQL server and configure it. "databases" used to manipulate mysql and "mysql2_chef_gem" is one of it dependecies. "apache2" used to manipulate with web server to get dumps available throught web interface. "simple_iptables" used to manipulate with system's firewall.
+
+
+## Q & A
+
 Q: what is cookstyle? how it's differs from rubocop?
 
 A: Cookstyle is library for RuboCop, which reviewing latest core updates code style and rules. Cookstyle usually contain main style rules for cookbook and prevents of cookbook style failure after new RuboCop releases.

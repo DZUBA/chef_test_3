@@ -11,7 +11,7 @@ end
 
 # start apache
 service 'httpd' do
-  action :start
+  action [:start, :enable]
 end
 
 # config for dump site

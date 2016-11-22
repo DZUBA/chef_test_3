@@ -61,7 +61,7 @@ mysql_database 'prod_db' do
 end
 
 # create user for stage_db
-mysql_database_user 'service-stage' do
+mysql_database_user 'service_stage' do
   sensitive true
   connection    mysql_connection_info
   database_name 'stage_db'
@@ -100,9 +100,9 @@ end
 
 # changing root password
 execute 'root_passwd' do
-  #sensitive true
+  sensitive true
   command "mysqladmin -uroot -pchangeMe -h127.0.0.1 -P3306 password #{mysql_passwd}"
-  #action :nothing
+  action :nothing
 end
 
 # create dir

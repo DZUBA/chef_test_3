@@ -7,14 +7,17 @@
 require 'spec_helper'
 
 describe 'chef_task_3::databases' do
-  context 'When all attributes are default, on an unspecified platform' do
-    let(:chef_run) do
-      runner = ChefSpec::ServerRunner.new
-      runner.converge(described_recipe)
-    end
+  let(:chef_run) { ChefSpec::SoloRunner.converge(described_recipe) }
 
-    it 'converges successfully' do
-      expect { chef_run }.to_not raise_error
-    end
+  it 'check prod_db availability' do
+    stub_data_bag_item('admins', 'mysql').and_return(id: 'mysql', user: 'root')
+    stub_command("echo 'SHOW SCHEMAS;' | /usr/bin/mysql -u root -h 127.0.0.1 -P 3306 -pchangeMe | grep prod_db").and_return(true)
+    expect { chef_run }.to_not raise_error
+  end
+
+  it 'check stage_db availability' do
+    stub_data_bag_item('admins', 'mysql').and_return(id: 'mysql', user: 'root')
+    stub_command("echo 'SHOW SCHEMAS;' | /usr/bin/mysql -u root -h 127.0.0.1 -P 3306 -pchangeMe | grep stage_db").and_return(true)
+    expect { chef_run }.to_not raise_error
   end
 end

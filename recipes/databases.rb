@@ -10,36 +10,36 @@ include_recipe 'yum'
 mysql_bag = data_bag_item('admins', 'mysql')
 
 # MySQL creds
-mysql_user = mysql_bag['user']
 mysql_passwd = mysql_bag['pass']
-inst_name = mysql_bag['inst']
 
 # mysql service install and start
-mysql_service 'default' do
+mysql_ser_install = mysql_service 'default' do
   port '3306'
   version '5.5'
-  instance "#{inst_name}"
-  initial_root_password "#{mysql_passwd}"
+  instance 'default'
+  initial_root_password 'changeMe'
   action [:create, :start]
 end
 
 # mysql2_chef_gem package to use database cookbook
 mysql2_chef_gem 'inst' do
   action :install
+  only_if { mysql_ser_install.updated_by_last_action? }
 end
 
 # mysql creds
 mysql_connection_info = {
   host: '127.0.0.1',
-  username: "#{mysql_user}",
-  socket: "/var/run/mysql-#{inst_name}/mysqld.sock",
-  password: "#{mysql_passwd}"
+  username: 'root',
+  socket: '/var/run/mysql-default/mysqld.sock',
+  password: 'changeMe'
 }
 
 # import schema file
 cookbook_file '/tmp/schema.sql' do
   sensitive true
   source 'schema.sql'
+  only_if { mysql_ser_install.updated_by_last_action? }
 end
 
 # create stage_db
@@ -47,6 +47,7 @@ mysql_database 'stage_db' do
   sensitive true
   connection mysql_connection_info
   action :create
+  only_if { mysql_ser_install.updated_by_last_action? }
   notifies :run, 'execute[stage_import]', :delayed
 end
 
@@ -55,6 +56,7 @@ mysql_database 'prod_db' do
   sensitive true
   connection mysql_connection_info
   action :create
+  only_if { mysql_ser_install.updated_by_last_action? }
   notifies :run, 'execute[prod_import]', :delayed
 end
 
@@ -66,6 +68,7 @@ mysql_database_user 'service-stage' do
   host          '%'
   privileges    [:select, :update, :insert]
   action        :grant
+  only_if { mysql_ser_install.updated_by_last_action? }
 end
 
 # create user for prod_db
@@ -76,6 +79,7 @@ mysql_database_user 'service_prod' do
   host          '%'
   privileges    [:select, :update, :insert]
   action        :grant
+  only_if { mysql_ser_install.updated_by_last_action? }
 end
 
 # create user for dump
@@ -85,27 +89,36 @@ mysql_database_user 'dump' do
   action        :create
   notifies :run, 'execute[dir_for_dump]'
   notifies :run, 'execute[dump_user_grants]'
+  only_if { mysql_ser_install.updated_by_last_action? }
 end
 
 # dump user grants
 execute 'dump_user_grants' do
   action :nothing
   sensitive true
-  command "mysql -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} -e \"grant select,lock tables on prod_db.* to 'dump'@'%'\" "
-  command "mysql -h127.0.0.1 -P3306 -u#{mysql_user} -p#{mysql_passwd} -e \"grant select,lock tables on stage_db.* to 'dump'@'%'\" "
+  command "mysql -h127.0.0.1 -P3306 -uroot -pchangeMe -e \"grant select,lock tables on prod_db.* to 'dump'@'%'\" "
+  command "mysql -h127.0.0.1 -P3306 -uroot -pchangeMe -e \"grant select,lock tables on stage_db.* to 'dump'@'%'\" "
+  notifies :run, 'execute[root_passwd]'
 end
 
 # importing stage_db schema
 execute 'stage_import' do
   sensitive true
-  command "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -u#{mysql_user} -Dstage_db < /tmp/schema.sql"
+  command 'mysql -h127.0.0.1 -P3306 -pchangeMe -uroot -Dstage_db < /tmp/schema.sql'
   action :nothing
 end
 
 # importing prod_db schema
 execute 'prod_import' do
   sensitive true
-  command "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -u#{mysql_user} -Dprod_db < /tmp/schema.sql"
+  command 'mysql -h127.0.0.1 -P3306 -pchangeMe -uroot -Dprod_db < /tmp/schema.sql'
+  action :nothing
+end
+
+# changing root password
+execute 'root_passwd' do
+  sensitive true
+  command "mysqladmin -uroot -pchangeMe -h127.0.0.1 -P3306 password #{mysql_passwd} "
   action :nothing
 end
 

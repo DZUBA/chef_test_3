@@ -66,7 +66,7 @@ mysql_database_user 'service-stage' do
   connection    mysql_connection_info
   database_name 'stage_db'
   host          '%'
-  privileges    [:select, :update, :insert]
+  privileges    [:all]
   action        :grant
   only_if { mysql_ser_install.updated_by_last_action? }
 end
@@ -77,28 +77,11 @@ mysql_database_user 'service_prod' do
   connection    mysql_connection_info
   database_name 'prod_db'
   host          '%'
-  privileges    [:select, :update, :insert]
+  privileges    [:all]
   action        :grant
   only_if { mysql_ser_install.updated_by_last_action? }
-end
-
-# create user for dump
-mysql_database_user 'dump' do
-  sensitive true
-  connection    mysql_connection_info
-  action        :create
+  notifies :run, 'execute[root_passwd]', :delayed
   notifies :run, 'execute[dir_for_dump]'
-  notifies :run, 'execute[dump_user_grants]'
-  only_if { mysql_ser_install.updated_by_last_action? }
-end
-
-# dump user grants
-execute 'dump_user_grants' do
-  action :nothing
-  sensitive true
-  command "mysql -h127.0.0.1 -P3306 -uroot -pchangeMe -e \"grant select,lock tables on prod_db.* to 'dump'@'%'\" "
-  command "mysql -h127.0.0.1 -P3306 -uroot -pchangeMe -e \"grant select,lock tables on stage_db.* to 'dump'@'%'\" "
-  notifies :run, 'execute[root_passwd]'
 end
 
 # importing stage_db schema
@@ -117,9 +100,9 @@ end
 
 # changing root password
 execute 'root_passwd' do
-  sensitive true
-  command "mysqladmin -uroot -pchangeMe -h127.0.0.1 -P3306 password #{mysql_passwd} "
-  action :nothing
+  #sensitive true
+  command "mysqladmin -uroot -pchangeMe -h127.0.0.1 -P3306 password #{mysql_passwd}"
+  #action :nothing
 end
 
 # create dir
@@ -131,11 +114,11 @@ end
 # create cron for stage_db dump
 cron 'stage_db_dump' do
   hour '1'
-  command 'mysqldump -h127.0.0.1 -P3306 -udump stage_db > /tmp/mysql_dump/stage_db.dump'
+  command 'mysqldump -h127.0.0.1 -P3306 -uservice_stage stage_db > /tmp/mysql_dump/stage_db.dump'
 end
 
 # create cron for cron_db dump
 cron 'prod_db_dump' do
   hour '1'
-  command 'mysqldump -h127.0.0.1 -P3306 -udump stage_db > /tmp/mysql_dump/prod_db.dump'
+  command 'mysqldump -h127.0.0.1 -P3306 -uservice_prod prod_db > /tmp/mysql_dump/prod_db.dump'
 end

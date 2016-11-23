@@ -1,5 +1,6 @@
 require 'chefspec'
 require 'chefspec/berkshelf'
+require 'chef-vault'
 
 RSpec.configure do |config|
   config.color = true               # Use color in STDOUT

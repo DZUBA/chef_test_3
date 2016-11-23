@@ -14,11 +14,11 @@ mysql_bag = chef_vault_item('admins', 'mysql')
 mysql_passwd = mysql_bag['pass']
 
 # mysql service install and start
-mysql_ser_install = mysql_service 'default' do
+mysql_service 'default' do
   port '3306'
   version '5.5'
   instance 'default'
-  initial_root_password 'changeMe'
+  initial_root_password mysql_bag['pass']
   action [:create, :start]
 end
 
@@ -32,7 +32,7 @@ mysql_connection_info = {
   host: '127.0.0.1',
   username: 'root',
   socket: '/var/run/mysql-default/mysqld.sock',
-  password: 'changeMe'
+  password: mysql_bag['pass']
 }
 
 # import schema file
@@ -46,7 +46,6 @@ mysql_database 'stage_db' do
   sensitive true
   connection mysql_connection_info
   action :create
-  only_if { mysql_ser_install.updated_by_last_action? }
   notifies :run, 'execute[stage_import]', :delayed
 end
 
@@ -55,7 +54,6 @@ mysql_database 'prod_db' do
   sensitive true
   connection mysql_connection_info
   action :create
-  only_if { mysql_ser_install.updated_by_last_action? }
   notifies :run, 'execute[prod_import]', :delayed
 end
 
@@ -67,7 +65,6 @@ mysql_database_user 'service_stage' do
   host          '%'
   privileges    [:all]
   action        :grant
-  only_if { mysql_ser_install.updated_by_last_action? }
 end
 
 # create user for prod_db
@@ -78,29 +75,20 @@ mysql_database_user 'service_prod' do
   host          '%'
   privileges    [:all]
   action        :grant
-  only_if { mysql_ser_install.updated_by_last_action? }
-  notifies :run, 'execute[root_passwd]', :delayed
   notifies :run, 'execute[dir_for_dump]'
 end
 
 # importing stage_db schema
 execute 'stage_import' do
   sensitive true
-  command 'mysql -h127.0.0.1 -P3306 -pchangeMe -uroot -Dstage_db < /tmp/schema.sql'
+  command "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dstage_db < /tmp/schema.sql"
   action :nothing
 end
 
 # importing prod_db schema
 execute 'prod_import' do
   sensitive true
-  command 'mysql -h127.0.0.1 -P3306 -pchangeMe -uroot -Dprod_db < /tmp/schema.sql'
-  action :nothing
-end
-
-# changing root password
-execute 'root_passwd' do
-  sensitive true
-  command "mysqladmin -uroot -pchangeMe -h127.0.0.1 -P3306 password #{mysql_passwd}"
+  command "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dprod_db < /tmp/schema.sql"
   action :nothing
 end
 

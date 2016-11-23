@@ -7,7 +7,7 @@
 include_recipe 'yum'
 
 # data bags init
-mysql_bag = data_bag_item('admins', 'mysql')
+mysql_bag = chef_vault_items('admins', 'mysql')
 
 # MySQL creds
 mysql_passwd = mysql_bag['pass']

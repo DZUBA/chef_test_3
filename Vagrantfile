@@ -70,12 +70,13 @@ Vagrant.configure('2') do |config|
   # SHELL
   config.berkshelf.enabled = true
   config.berkshelf.berksfile_path = 'Berksfile'
-  config.vm.provision 'chef_solo' do |chef|
+  config.vm.provision :chef_zero do |chef|
     chef.cookbooks_path = 'chef_task_3'
     chef.data_bags_path = 'data_bags'
-    config.vm.synced_folder './.chef/', '/etc/chef', type: 'rsync'
-    config.vm.network :forwarded_port, guest: 80, host: 80
-    chef.encrypted_data_bag_secret_key_path = '/etc/chef/client.pem'
+    chef.nodes_path = 'nodes'
+    chef.roles_path = 'roles'
+    chef.add_role 'common'
+    config.vm.network :forwarded_port, guest: 80, host: 8080
     chef.run_list = [
       'recipe[chef_task_3::databases]',
       'recipe[chef_task_3::httpd]',

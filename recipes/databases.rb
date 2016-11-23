@@ -5,9 +5,10 @@
 # Copyright (c) 2016 The Authors, All Rights Reserved.
 
 include_recipe 'yum'
+include_recipe 'chef-vault'
 
 # data bags init
-mysql_bag = data_bag_item('admins', 'mysql')
+mysql_bag = chef_vault_item('admins', 'mysql')
 
 # MySQL creds
 mysql_passwd = mysql_bag['pass']

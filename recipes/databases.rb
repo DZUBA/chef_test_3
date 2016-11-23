@@ -5,16 +5,16 @@
 # Copyright (c) 2016 The Authors, All Rights Reserved.
 
 include_recipe 'yum'
-include_recipe 'chef-vault'
+#include_recipe 'chef-vault'
 
 # data bags init
-mysql_bag = chef_vault_items('admins', 'mysql')
+mysql_bag = data_bag_item('admins', 'mysql')
 
 # MySQL creds
 mysql_passwd = mysql_bag['pass']
 
 # mysql service install and start
-mysql_service 'default' do
+mysql_ser_install = mysql_service 'default' do
   port '3306'
   version '5.5'
   instance 'default'
@@ -46,6 +46,7 @@ mysql_database 'stage_db' do
   sensitive true
   connection mysql_connection_info
   action :create
+  only_if { mysql_ser_install.updated_by_last_action? }
   notifies :run, 'execute[stage_import]', :delayed
 end
 
@@ -54,6 +55,7 @@ mysql_database 'prod_db' do
   sensitive true
   connection mysql_connection_info
   action :create
+  only_if { mysql_ser_install.updated_by_last_action? }
   notifies :run, 'execute[prod_import]', :delayed
 end
 
@@ -65,6 +67,7 @@ mysql_database_user 'service_stage' do
   host          '%'
   privileges    [:all]
   action        :grant
+  only_if { mysql_ser_install.updated_by_last_action? }
 end
 
 # create user for prod_db
@@ -75,6 +78,7 @@ mysql_database_user 'service_prod' do
   host          '%'
   privileges    [:all]
   action        :grant
+  only_if { mysql_ser_install.updated_by_last_action? }
   notifies :run, 'execute[root_passwd]', :delayed
   notifies :run, 'execute[dir_for_dump]'
 end

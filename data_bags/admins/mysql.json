@@ -1,21 +1,5 @@
 {
   "id": "mysql",
-  "pass": {
-    "encrypted_data": "KR7RKvrtxFg/dE8ivMuw0hzlKB5rMlbx8MD6FfndmHk=\n",
-    "iv": "f0fS3irkPc4ufrQkY2LXhg==\n",
-    "version": 1,
-    "cipher": "aes-256-cbc"
-  },
-  "user": {
-    "encrypted_data": "odI1p6VQAWaUIxvvo3QMuXmq5GFtyQ/UZssP2XFai0s=\n",
-    "iv": "Jg9SIs8Psdkv0MWNDzonnA==\n",
-    "version": 1,
-    "cipher": "aes-256-cbc"
-  },
-  "inst": {
-    "encrypted_data": "IcrmtoMp5TS2VShRsuV+bmVpGrXU7cphVW2vsed7ppQ=\n",
-    "iv": "cwoTx84uRQthadk7bns7tg==\n",
-    "version": 1,
-    "cipher": "aes-256-cbc"
-  }
+  "pass": "Hg276Nvy",
+  "user": "root"
 }

@@ -13,7 +13,7 @@ mysql_bag = chef_vault_items('admins', 'mysql')
 mysql_passwd = mysql_bag['pass']
 
 # mysql service install and start
-mysql_ser_install = mysql_service 'default' do
+mysql_service 'default' do
   port '3306'
   version '5.5'
   instance 'default'
@@ -24,7 +24,6 @@ end
 # mysql2_chef_gem package to use database cookbook
 mysql2_chef_gem 'inst' do
   action :install
-  only_if { mysql_ser_install.updated_by_last_action? }
 end
 
 # mysql creds
@@ -39,7 +38,6 @@ mysql_connection_info = {
 cookbook_file '/tmp/schema.sql' do
   sensitive true
   source 'schema.sql'
-  only_if { mysql_ser_install.updated_by_last_action? }
 end
 
 # create stage_db
@@ -47,7 +45,6 @@ mysql_database 'stage_db' do
   sensitive true
   connection mysql_connection_info
   action :create
-  only_if { mysql_ser_install.updated_by_last_action? }
   notifies :run, 'execute[stage_import]', :delayed
 end
 
@@ -56,7 +53,6 @@ mysql_database 'prod_db' do
   sensitive true
   connection mysql_connection_info
   action :create
-  only_if { mysql_ser_install.updated_by_last_action? }
   notifies :run, 'execute[prod_import]', :delayed
 end
 
@@ -68,7 +64,6 @@ mysql_database_user 'service_stage' do
   host          '%'
   privileges    [:all]
   action        :grant
-  only_if { mysql_ser_install.updated_by_last_action? }
 end
 
 # create user for prod_db
@@ -79,7 +74,6 @@ mysql_database_user 'service_prod' do
   host          '%'
   privileges    [:all]
   action        :grant
-  only_if { mysql_ser_install.updated_by_last_action? }
   notifies :run, 'execute[root_passwd]', :delayed
   notifies :run, 'execute[dir_for_dump]'
 end

@@ -9,7 +9,6 @@ require 'spec_helper'
 describe 'chef_task_3::databases' do
   let(:chef_run) { ChefSpec::SoloRunner.converge(described_recipe) }
 
-
   it 'mysql_service' do
     stub_data_bag_item('admins', 'mysql').and_return(id: 'mysql', user: 'root')
     expect(chef_run).to create_mysql_service('default')

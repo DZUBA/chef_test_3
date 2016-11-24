@@ -46,7 +46,6 @@ mysql_database 'stage_db' do
   sensitive true
   connection mysql_connection_info
   action :create
-  notifies :run, 'execute[stage_import]', :delayed
 end
 
 # create prod_db
@@ -54,7 +53,6 @@ mysql_database 'prod_db' do
   sensitive true
   connection mysql_connection_info
   action :create
-  notifies :run, 'execute[prod_import]', :delayed
 end
 
 # create user for stage_db
@@ -75,27 +73,28 @@ mysql_database_user 'service_prod' do
   host          '%'
   privileges    [:all]
   action        :grant
-  notifies :run, 'execute[dir_for_dump]'
 end
 
 # importing stage_db schema
 execute 'stage_import' do
   sensitive true
   command "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dstage_db < /tmp/schema.sql"
-  action :nothing
+  not_if  "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dstage_db -e 'describe customers;'"
 end
 
 # importing prod_db schema
 execute 'prod_import' do
   sensitive true
   command "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dprod_db < /tmp/schema.sql"
-  action :nothing
+  not_if  "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dstage_db -e 'describe customers;'"
 end
 
 # create dir
-execute 'dir_for_dump' do
-  action :nothing
-  command 'mkdir /tmp/mysql_dump'
+directory '/tmp/mysql_dump' do
+  owner 'root'
+  group 'root'
+  mode '0755'
+  action :create
 end
 
 # create cron for stage_db dump

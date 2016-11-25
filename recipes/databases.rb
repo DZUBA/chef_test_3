@@ -23,7 +23,7 @@ mysql_service 'default' do
 end
 
 # mysql2_chef_gem package to use database cookbook
-mysql2_chef_gem 'inst' do
+mysql2_chef_gem 'install_mysql2_chef_gem' do
   action :install
 end
 
@@ -86,7 +86,7 @@ end
 execute 'prod_import' do
   sensitive true
   command "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dprod_db < /tmp/schema.sql"
-  not_if  "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dstage_db -e 'describe customers;'"
+  not_if  "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dprod_db -e 'describe customers;'"
 end
 
 # create dir

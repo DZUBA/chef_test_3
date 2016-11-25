@@ -11,10 +11,14 @@ describe 'chef_task_3::databases' do
   before do
     allow_any_instance_of(Chef::Recipe).to receive(:data_bag).with('admins').and_return('mysql.json')
     allow_any_instance_of(Chef::Recipe).to receive(:chef_vault_item).with('admins', 'mysql').and_return(id: 'mysql', user: 'root')
-    stub_command("mysql -h127.0.0.1 -P3306 -p -uroot -Dstage_db -e 'describe customers;'").and_return(true)
-    stub_command("mysql -h127.0.0.1 -P3306 -p -uroot -Dprod_db -e 'describe customers;'").and_return(true)
+    stub_command("mysql -h127.0.0.1 -P3306 -p -uroot -Dstage_db -e 'describe customers;'").and_return(false)
+    stub_command("mysql -h127.0.0.1 -P3306 -p -uroot -Dprod_db -e 'describe customers;'").and_return(false)
   end
   let(:chef_run) { ChefSpec::SoloRunner.converge(described_recipe) }
+
+  it 'testing cookbook_file' do
+    expect(chef_run).to create_cookbook_file('/tmp/schema.sql')
+  end
 
   it 'isntall and start mysql_service' do
     expect(chef_run).to start_mysql_service('default')
@@ -36,6 +40,14 @@ describe 'chef_task_3::databases' do
 
   it 'dump directory creation' do
     expect(chef_run).to create_directory('/tmp/mysql_dump')
+  end
+
+  it 'execute stage_db imports' do
+    expect(chef_run).to run_execute('stage_import')
+  end
+
+  it 'execute prod_db imports' do
+    expect(chef_run).to run_execute('prod_import')
   end
 
   it 'crons creation' do

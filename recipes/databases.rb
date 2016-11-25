@@ -10,9 +10,6 @@ include_recipe 'chef-vault'
 # data bags init
 mysql_bag = chef_vault_item('admins', 'mysql')
 
-# MySQL creds
-mysql_passwd = mysql_bag['pass']
-
 # mysql service install and start
 mysql_service 'default' do
   port '3306'
@@ -37,27 +34,23 @@ mysql_connection_info = {
 
 # import schema file
 cookbook_file '/tmp/schema.sql' do
-  sensitive true
   source 'schema.sql'
 end
 
 # create stage_db
 mysql_database 'stage_db' do
-  sensitive true
   connection mysql_connection_info
   action :create
 end
 
 # create prod_db
 mysql_database 'prod_db' do
-  sensitive true
   connection mysql_connection_info
   action :create
 end
 
 # create user for stage_db
 mysql_database_user 'service_stage' do
-  sensitive true
   connection    mysql_connection_info
   database_name 'stage_db'
   host          '%'
@@ -67,7 +60,6 @@ end
 
 # create user for prod_db
 mysql_database_user 'service_prod' do
-  sensitive true
   connection    mysql_connection_info
   database_name 'prod_db'
   host          '%'
@@ -78,15 +70,15 @@ end
 # importing stage_db schema
 execute 'stage_import' do
   sensitive true
-  command "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dstage_db < /tmp/schema.sql"
-  not_if  "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dstage_db -e 'describe customers;'"
+  command "mysql -h127.0.0.1 -P3306 -p#{mysql_bag['pass']} -uroot -Dstage_db < /tmp/schema.sql"
+  not_if "mysql -h127.0.0.1 -P3306 -p#{mysql_bag['pass']} -uroot -Dstage_db -e 'describe customers;'"
 end
 
 # importing prod_db schema
 execute 'prod_import' do
   sensitive true
-  command "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dprod_db < /tmp/schema.sql"
-  not_if  "mysql -h127.0.0.1 -P3306 -p#{mysql_passwd} -uroot -Dprod_db -e 'describe customers;'"
+  command "mysql -h127.0.0.1 -P3306 -p#{mysql_bag['pass']} -uroot -Dprod_db < /tmp/schema.sql"
+  not_if "mysql -h127.0.0.1 -P3306 -p#{mysql_bag['pass']} -uroot -Dprod_db -e 'describe customers;'"
 end
 
 # create dir

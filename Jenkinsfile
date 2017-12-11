@@ -1,5 +1,5 @@
 runPipeline('githubflow') {
-  appName = 'jenkins'
+  appName = 'chef_test_3'
   platform = 'chef'
   role = ['jenkins-master', 'jenkins-slave']
   cookbookName = 'chef_test_3'

@@ -4,7 +4,7 @@ maintainer_email 'zzzdzuba@gmail.com'
 license 'all_rights'
 description 'Installs/Configures chef_task_3'
 long_description 'Installs/Configures chef_task_3'
-version '0.1.1'
+version '0.1.2'
 issues_url 'https://github.com/DZUBA/chef_test_3'
 source_url 'https://github.com/DZUBA/chef_test_3'
 
